@@ -2,9 +2,9 @@
 using System.Data;
 using System.DirectoryServices;
 using System.DirectoryServices.AccountManagement;
-using System.Windows.Forms;
 using System.Drawing;
-
+using System.IO;
+using System.Windows.Forms;
 
 
 
@@ -26,6 +26,8 @@ namespace AdmUsrPwd
 
         const string sBlocktext = "Заблокирован";
 
+        const string sFilename = "history.txt";
+
         public Form1()
         {
             InitializeComponent();
@@ -42,7 +44,7 @@ namespace AdmUsrPwd
         }
 
 
-        public static string GetPasswd(string computer)
+        public string GetPasswd(string computer)
         {
             try
             {
@@ -60,6 +62,55 @@ namespace AdmUsrPwd
                 return "";
             }
         }
+
+        public void FillDT(string usrName)
+        {
+            string info = "";
+            string usrStatus = "";
+            try
+            {
+                using (PrincipalContext Context = new PrincipalContext(ContextType.Domain))
+                using (UserPrincipal UP = UserPrincipal.FindByIdentity(Context, usrName))
+                using (DirectoryEntry DE = (DirectoryEntry)UP.GetUnderlyingObject())
+                {
+                    if (DE.Properties.Contains("info")) info = DE.Properties["info"].Value.ToString();
+
+                    if (DE.Properties.Contains("userAccountControl")) usrStatus = DE.Properties["userAccountControl"].Value.ToString();
+                }
+            }
+            catch (Exception oe)
+            {
+                MessageBox.Show("Exception : " + oe.Message);
+                Console.WriteLine("Exception : " + oe.Message);
+            }
+
+            if (!string.IsNullOrEmpty(usrStatus))
+                if (isBlocked(usrStatus)) usrStatus = sBlocktext;
+                    else usrStatus = "";
+
+            string[] compName = info.Split(';');
+            if (!string.IsNullOrEmpty(compName[0]) )
+            {
+                txtUserName.Text = usrName;
+                txtCompName.Text = compName[0];
+                txtPasswd.Text = GetPasswd(compName[0]);
+
+                dt.Rows.Add(txtUserName.Text, txtCompName.Text, txtPasswd.Text, usrStatus);
+            }
+        }
+
+        public bool isBlocked(string userAccountControl)
+        {
+            int iUAC = Int32.Parse(userAccountControl);
+            iUAC = iUAC & 2;
+            if (iUAC != 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -114,7 +165,7 @@ namespace AdmUsrPwd
                 results = ds.FindAll();
           
 
-                lstBoxUsr.Items.Clear();
+                lstViewUsr.Items.Clear();
                 foreach (SearchResult sr in results)
                 {
 
@@ -129,12 +180,10 @@ namespace AdmUsrPwd
                     //66050 = Disabled, password never expires
                     //https://winitpro.ru/index.php/2018/05/14/convertaciya-atributa-useraccountcontrol-v-ad/#:~:text=Каждый%20из%20этих%20атрибутов%20учетной,вместо%20этого%20используется%20атрибут%20UserAccountControl.
 
-                    lstBoxUsr.Items.Add(sr.Properties["userPrincipalName"][0]);
 
                     ListViewItem item = new ListViewItem( sr.Properties["userPrincipalName"][0].ToString());
-                    int iUAC = Int32.Parse(sr.Properties["userAccountControl"][0].ToString());
-                    iUAC = iUAC & 2;
-                    if (iUAC != 0) { 
+
+                   if (isBlocked(sr.Properties["userAccountControl"][0].ToString())) { 
                         item.BackColor = Color.Red;
                         item.SubItems.Add(sBlocktext);
                     }
@@ -165,39 +214,7 @@ namespace AdmUsrPwd
             }
         }
 
-        private void lstBoxUsr_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            
-            string info = "";
-            string usrName = lstBoxUsr.SelectedItem.ToString();
-
-            try
-            {
-                using (PrincipalContext Context = new PrincipalContext(ContextType.Domain))
-                using (UserPrincipal UP = UserPrincipal.FindByIdentity(Context, usrName))
-                using (DirectoryEntry DE = (DirectoryEntry)UP.GetUnderlyingObject())
-                {
-                    if (DE.Properties.Contains("info")) info = DE.Properties["info"].Value.ToString();
-                }
-            }
-            catch (Exception oe)
-            {
-                Console.WriteLine("Exception : " + oe.Message);
-            }
-
-
-
-            string[] compName = info.Split(';');
-            if (!string.IsNullOrEmpty(compName[0]))
-            {
-                txtUserName.Text = usrName;
-                txtCompName.Text = compName[0];
-                txtPasswd.Text = GetPasswd(compName[0]);
-
-                dt.Rows.Add(txtUserName.Text, txtCompName.Text, txtPasswd.Text);
-            }
-
-        }
+       
 
         private void dataGridView1_SelectionChanged(object sender, EventArgs e)
         {
@@ -214,52 +231,27 @@ namespace AdmUsrPwd
         private void button2_Click(object sender, EventArgs e)
         {
             txtUserName.Text = "";
-            lstBoxUsr.Items.Clear();
+            lstViewUsr.Items.Clear();
         }
 
         private void lstViewUsr_SelectedIndexChanged(object sender, EventArgs e)
         {
-            string info = "";
-            string usrStatus = "";
+           
 
             if (lstViewUsr.SelectedIndices.Count <= 0)
             {
                 return;
             }
 
-            string usrName = lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].Text;
+            //string usrName = lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].Text;
 
-             if (  lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].SubItems.Count >1 ) 
-                   usrStatus = lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].SubItems[1].Text;
+            //if (  lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].SubItems.Count >1 ) 
+            //       usrStatus = lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].SubItems[1].Text;
 
-          
-
-            //lstViewUsr.SelectedIndices.Count
-            try
-            {
-                using (PrincipalContext Context = new PrincipalContext(ContextType.Domain))
-                using (UserPrincipal UP = UserPrincipal.FindByIdentity(Context, usrName))
-                using (DirectoryEntry DE = (DirectoryEntry)UP.GetUnderlyingObject())
-                {
-                    if (DE.Properties.Contains("info")) info = DE.Properties["info"].Value.ToString();
-                }
-            }
-            catch (Exception oe)
-            {
-                Console.WriteLine("Exception : " + oe.Message);
-            }
+            FillDT(lstViewUsr.Items[lstViewUsr.SelectedIndices[0]].Text);
 
 
-
-            string[] compName = info.Split(';');
-            if (!string.IsNullOrEmpty(compName[0]))
-            {
-                txtUserName.Text = usrName;
-                txtCompName.Text = compName[0];
-                txtPasswd.Text = GetPasswd(compName[0]);
-
-                dt.Rows.Add(txtUserName.Text, txtCompName.Text, txtPasswd.Text, usrStatus);
-            }
+           
         }
 
         private void dataGridView1_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
@@ -267,6 +259,45 @@ namespace AdmUsrPwd
             if ( dataGridView1.Rows[e.RowIndex].Cells[3].Value.ToString() == sBlocktext ) 
             {
                 dataGridView1.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.Red;
+            }
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+
+            //csv
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(sFilename, false, System.Text.Encoding.Default))
+                {
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        sw.WriteLine(row[0].ToString());
+                    }
+                }
+            }
+            catch (Exception oe)
+            {
+                Console.WriteLine("Exception : " + oe.Message);
+            }
+        }
+        
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (StreamReader sr = new StreamReader(sFilename, System.Text.Encoding.Default))
+                {
+                string line;
+                while ((line =  sr.ReadLine()) != null) 
+                    FillDT(line);
+                }
+
+            }
+            catch (Exception oe)
+            {
+                Console.WriteLine("Exception : " + oe.Message);
             }
         }
     }
