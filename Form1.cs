@@ -28,6 +28,10 @@ namespace AdmUsrPwd
 
         const string sFilename = "history.txt";
 
+        const int iHistorySave = 10;
+
+        const string sCmRcViewer = ".\\Rc2021\\CmRcViewer.exe";
+
         public Form1()
         {
             InitializeComponent();
@@ -153,7 +157,7 @@ namespace AdmUsrPwd
             // Login Name
             ds.PropertiesToLoad.Add("userPrincipalName");
             ds.PropertiesToLoad.Add("userAccountControl");
-            //(lockoutTime>=1)
+          
 
             //
             if (txtUserName.Text.Trim() != "" )
@@ -173,7 +177,7 @@ namespace AdmUsrPwd
                     //MessageBox.Show(sr.Properties["mail"][0].ToString());
                     //MessageBox.Show(sr.Properties["userPrincipalName"][0].ToString());
                     //MessageBox.Show(sr.Properties["userAccountControl"][0].ToString());
-
+                    //(lockoutTime>=1)
                     //512 = Enabled
                     //514 = Disabled
                     //66048 = Enabled, password never expires
@@ -218,9 +222,12 @@ namespace AdmUsrPwd
 
         private void dataGridView1_SelectionChanged(object sender, EventArgs e)
         {
-            txtUserName.Text = Convert.ToString(dataGridView1.CurrentRow.Cells[0].Value);
-            txtCompName.Text= Convert.ToString(dataGridView1.CurrentRow.Cells[1].Value);
-            txtPasswd.Text = Convert.ToString(dataGridView1.CurrentRow.Cells[2].Value);
+            if (dataGridView1.CurrentRow != null)
+            {
+                txtUserName.Text = Convert.ToString(dataGridView1.CurrentRow.Cells[0].Value);
+                txtCompName.Text = Convert.ToString(dataGridView1.CurrentRow.Cells[1].Value);
+                txtPasswd.Text = Convert.ToString(dataGridView1.CurrentRow.Cells[2].Value);
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -270,9 +277,12 @@ namespace AdmUsrPwd
             {
                 using (StreamWriter sw = new StreamWriter(sFilename, false, System.Text.Encoding.Default))
                 {
+                    int i = 0;
                     foreach (DataRow row in dt.Rows)
                     {
                         sw.WriteLine(row[0].ToString());
+                        i++;
+                        if (i == iHistorySave) break;
                     }
                 }
             }
@@ -297,8 +307,24 @@ namespace AdmUsrPwd
             }
             catch (Exception oe)
             {
+                MessageBox.Show("ошибка чтения файла history.txt из папки с программой");
                 Console.WriteLine("Exception : " + oe.Message);
             }
+
+            // set table pos to last element
         }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(sCmRcViewer, txtCompName.Text);
+            }
+            catch (Exception oe)
+            {
+                MessageBox.Show("ошибка запуска "+ sCmRcViewer);
+                Console.WriteLine("Exception : " + oe.Message);
+            }
+}
     }
 }

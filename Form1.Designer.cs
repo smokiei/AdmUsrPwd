@@ -47,6 +47,7 @@ namespace AdmUsrPwd
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -116,6 +117,7 @@ namespace AdmUsrPwd
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.button5);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.txtPasswd);
             this.groupBox1.Controls.Add(this.label2);
@@ -125,7 +127,7 @@ namespace AdmUsrPwd
             this.groupBox1.Margin = new System.Windows.Forms.Padding(2);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(2);
-            this.groupBox1.Size = new System.Drawing.Size(873, 62);
+            this.groupBox1.Size = new System.Drawing.Size(1002, 62);
             this.groupBox1.TabIndex = 22;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Данные пользователя";
@@ -235,13 +237,23 @@ namespace AdmUsrPwd
             // 
             // button4
             // 
-            this.button4.Location = new System.Drawing.Point(1351, 406);
+            this.button4.Location = new System.Drawing.Point(1325, 406);
             this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(75, 23);
+            this.button4.Size = new System.Drawing.Size(128, 23);
             this.button4.TabIndex = 24;
-            this.button4.Text = "button4";
+            this.button4.Text = "Загрузить историю";
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
+            // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(773, 15);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(181, 42);
+            this.button5.TabIndex = 19;
+            this.button5.Text = "Запустить CmRcViewer";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
             // Form1
             // 
@@ -285,6 +297,7 @@ namespace AdmUsrPwd
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button5;
     }
 }
 
